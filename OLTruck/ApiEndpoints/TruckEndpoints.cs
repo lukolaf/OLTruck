@@ -5,6 +5,7 @@ using OLTruck.Domain.Enums;
 using OLTruck.Queries;
 using OLTruck.Shared.TruckDto;
 using System.ComponentModel.DataAnnotations;
+using System.Globalization;
 
 namespace OLTruck.ApiEndpoints
 {
@@ -26,9 +27,9 @@ namespace OLTruck.ApiEndpoints
                 }
             });
 
-            app.MapGet("/trucks", async (IMediator mediator) =>
+            app.MapGet("/trucks", async (IMediator mediator, string? filter, string? sortBy) =>
             {
-                var trucks = await mediator.Send(new GetAllTrucksQuery());
+                var trucks = await mediator.Send(new GetAllTrucksQuery { Filter = filter, SortBy = sortBy });
                 return Results.Ok(trucks);
             });
 
