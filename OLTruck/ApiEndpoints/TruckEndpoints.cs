@@ -1,8 +1,6 @@
 ﻿using MediatR;
-using Microsoft.AspNetCore.Components.Forms;
 using OLTruck.Commands;
 using OLTruck.Domain.Enums;
-using OLTruck.Domain.Models;
 using OLTruck.Queries;
 using OLTruck.Shared.TruckDto;
 using System.ComponentModel.DataAnnotations;
@@ -66,9 +64,18 @@ namespace OLTruck.ApiEndpoints
                 return Results.NoContent();
             });
 
-            app.MapPatch("/trucks/{code}/status", (string code, TruckStatus newStatus) =>
+            app.MapPatch("/trucks/{code}/status", async (IMediator mediator, string code, TruckStatus newStatus) =>
             {
-                return Results.NoContent();
+                var command = new UpdateTruckStatusCommand(code, newStatus);
+                try
+                {
+                    await mediator.Send(command);
+                    return Results.NoContent();
+                }
+                catch (KeyNotFoundException ex)
+                {
+                    return Results.NotFound(ex.Message);
+                }
             });
         }
     }
