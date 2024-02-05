@@ -1,9 +1,9 @@
+using FluentValidation;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.EntityFrameworkCore;
 using OLTruck.ApiEndpoints;
+using OLTruck.Commands.Validators;
 using OLTruck.Infrastructure;
-using OLTruck.Services;
-using OLTruck.Services.Interfaces;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -19,8 +19,9 @@ builder.Services.Configure<JsonOptions>(options =>
 {
     options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
 });
-builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
 
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
+builder.Services.AddValidatorsFromAssemblyContaining<CreateTruckCommandValidator>();
 var app = builder.Build();
 DataInitializer.InitializeData(app);
 

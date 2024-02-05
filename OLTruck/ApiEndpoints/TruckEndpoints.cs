@@ -1,8 +1,11 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Components.Forms;
 using OLTruck.Commands;
 using OLTruck.Domain.Enums;
+using OLTruck.Domain.Models;
 using OLTruck.Queries;
 using OLTruck.Shared.TruckDto;
+using System.ComponentModel.DataAnnotations;
 
 namespace OLTruck.ApiEndpoints
 {
@@ -12,10 +15,16 @@ namespace OLTruck.ApiEndpoints
         {
             app.MapPost("/trucks", async (IMediator mediator, TruckCreateDto truck) =>
             {
-                var command = new CreateTruckCommand { TruckCreateDto = truck };
-                var result = await mediator.Send(command);
-
-                return Results.Created($"/trucks/{truck.Code}", truck);
+                try
+                {
+                    var command = new CreateTruckCommand { TruckCreateDto = truck };
+                    var result = await mediator.Send(command);
+                    return Results.Created($"/trucks/{result.Code}", result);
+                }
+                catch (ValidationException ex)
+                {
+                    return Results.BadRequest(ex.Value);
+                }
             });
 
             app.MapGet("/trucks", async (IMediator mediator) =>
@@ -38,9 +47,18 @@ namespace OLTruck.ApiEndpoints
                 }
             });
 
-            app.MapPut("/trucks/{code}", () =>
+            app.MapPut("/trucks/{code}", async (IMediator mediator, string code, TruckUpdateDto truckUpdateDto) =>
             {
-                return Results.NoContent();
+                try
+                {
+                    var command = new UpdateTruckCommand(code, truckUpdateDto);
+                    await mediator.Send(command);
+                    return Results.NoContent();
+                }
+                catch (ValidationException ex)
+                {
+                    return Results.BadRequest(ex.Value);
+                }
             });
 
             app.MapDelete("/trucks/{code}", (string code) =>
