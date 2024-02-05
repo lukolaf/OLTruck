@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Components.Forms;
 using OLTruck.Commands;
 using OLTruck.Domain.Enums;
 using OLTruck.Queries;
@@ -59,9 +60,18 @@ namespace OLTruck.ApiEndpoints
                 }
             });
 
-            app.MapDelete("/trucks/{code}", (string code) =>
+            app.MapDelete("/trucks/{code}", async (IMediator mediator, string code) =>
             {
-                return Results.NoContent();
+                var command = new DeleteTruckCommand(code);
+                try
+                {
+                    await mediator.Send(command);
+                    return Results.NoContent();
+                }
+                catch (KeyNotFoundException ex)
+                {
+                    return Results.NotFound(ex.Message);
+                }
             });
 
             app.MapPatch("/trucks/{code}/status", async (IMediator mediator, string code, TruckStatus newStatus) =>
