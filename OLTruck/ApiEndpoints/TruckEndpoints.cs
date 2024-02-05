@@ -1,5 +1,8 @@
-﻿using OLTruck.Domain.Enums;
-using OLTruck.Services.Interfaces;
+﻿using MediatR;
+using OLTruck.Commands;
+using OLTruck.Domain.Enums;
+using OLTruck.Queries;
+using OLTruck.Shared.TruckDto;
 
 namespace OLTruck.ApiEndpoints
 {
@@ -7,21 +10,32 @@ namespace OLTruck.ApiEndpoints
     {
         public static void MapTruckEndpoints(this IEndpointRouteBuilder app)
         {
-            app.MapPost("/trucks", () =>
+            app.MapPost("/trucks", async (IMediator mediator, TruckCreateDto truck) =>
             {
-                return Results.NoContent();
+                var command = new CreateTruckCommand { TruckCreateDto = truck };
+                var result = await mediator.Send(command);
+
+                return Results.Created($"/trucks/{truck.Code}", truck);
             });
 
-            app.MapGet("/trucks", async (ITempService tempService) =>
+            app.MapGet("/trucks", async (IMediator mediator) =>
             {
-                var trucks = await tempService.GetAllTrucksAsync();
-
+                var trucks = await mediator.Send(new GetAllTrucksQuery());
                 return Results.Ok(trucks);
             });
 
-            app.MapGet("/trucks/{code}", (string code) =>
+            app.MapGet("/trucks/{code}", async (IMediator mediator, string code) =>
             {
-                return Results.NoContent();
+                var query = new GetTruckByCodeQuery(code);
+                try
+                {
+                    var truck = await mediator.Send(query);
+                    return Results.Ok(truck);
+                }
+                catch (KeyNotFoundException)
+                {
+                    return Results.NotFound();
+                }
             });
 
             app.MapPut("/trucks/{code}", () =>

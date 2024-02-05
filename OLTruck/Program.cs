@@ -1,8 +1,10 @@
+using Microsoft.AspNetCore.Http.Json;
 using Microsoft.EntityFrameworkCore;
 using OLTruck.ApiEndpoints;
 using OLTruck.Infrastructure;
 using OLTruck.Services;
 using OLTruck.Services.Interfaces;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,8 +14,12 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<OlTruckDbContext>(options =>
     options.UseInMemoryDatabase("InMemoryDatabase"));
-
-builder.Services.AddScoped<ITempService, TempService>();
+// Display enum as string
+builder.Services.Configure<JsonOptions>(options =>
+{
+    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
+});
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
 
 var app = builder.Build();
 DataInitializer.InitializeData(app);
