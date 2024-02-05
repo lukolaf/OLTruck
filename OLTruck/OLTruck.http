@@ -1,0 +1,6 @@
+@OLTruck_HostAddress = http://localhost:5175
+
+GET {{OLTruck_HostAddress}}/olTruck/
+Accept: application/json
+
+###
